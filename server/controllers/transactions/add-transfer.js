@@ -35,8 +35,8 @@ module.exports = async ctx => {
 	
 	const notificationParams = {
 		type: 'card2Card',
-		user: user,
-		amount: amount,
+		user,
+		amount,
 		card: toCard
 	};
 	

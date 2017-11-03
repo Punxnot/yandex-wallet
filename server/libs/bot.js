@@ -1,7 +1,6 @@
 const axios = require('axios');
 const UsersContext = require('../data/users_context');
 const TelegramBot = require('node-telegram-bot-api');
-// const token = '248027235:AAFbrU-WVBSp__tmgEoU-6nJb82LKiTbc3E';
 const {TELEGRAM_TOKEN} = require('../config-env');
 const bot = new TelegramBot(TELEGRAM_TOKEN);
 const baseTelegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/`;

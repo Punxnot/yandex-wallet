@@ -32,10 +32,10 @@ module.exports = async (ctx) => {
 	
 	const notificationParams = {
 		type: 'paymentMobile',
-		user: user,
-		phone: phone,
-		amount: amount,
-		card: card
+		user,
+		phone,
+		amount,
+		card
 	};
 	
 	telegramBot.sendNotification(notificationParams);
