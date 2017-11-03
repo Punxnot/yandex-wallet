@@ -1,4 +1,3 @@
-const axios = require('axios');
 const UsersContext = require('../data/users_context');
 const TelegramBot = require('node-telegram-bot-api');
 const {TELEGRAM_TOKEN} = require('../config-env');
