@@ -78,7 +78,7 @@ const SumInput = styled(Input)`
 const Currency = styled.span`
 	font-size: 12px;
 	position: absolute;
-	right: 10;
+	margin-left: 10px;
 	top: 8px;
 	color: #fff;
 `;
