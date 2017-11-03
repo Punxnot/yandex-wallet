@@ -1,4 +1,5 @@
 const addTransaction = require('../add-transaction-method');
+const telegramBot = require('../../libs/bot');
 
 module.exports = async (ctx) => {
 	const {id} = ctx.params;
@@ -25,4 +26,6 @@ module.exports = async (ctx) => {
 	}
 
 	ctx.status = 201;
+	
+	telegramBot.sendNotification("48677477", `С вашей карты ${card.cardNumber} на телефон ${phone} переведено ${amount} ${card.currency}`);
 };
