@@ -7,6 +7,8 @@ import Title from '../../misc/title';
 import Button from '../../misc/button';
 import Input from '../../misc/input';
 
+import { convertCurrency } from '../../../selectors/currency';
+
 const PrepaidLayout = styled(Island)`
 	width: 350px;
 	display: flex;
@@ -54,6 +56,13 @@ const PrepaidItemDescription = styled.div`
 	color: ${({selected, textColor}) => selected ? textColor : 'rgba(255, 255, 255, 0.4)'};
 `;
 
+const PrepaidItemCurrency = styled.div`
+  font-size: 16px;
+  font-family: 'OCR A Std Regular';
+  color: #fff;
+  margin-left: 20px;
+`;
+
 const InputField = styled.div`
 	margin: 20px 0;
 	position: relative;
@@ -86,57 +95,108 @@ class PrepaidContract extends Component {
 		super(props);
 
 		this.state = {
-			activeCardIndex: 0,
-			sum: 0
+			prepaidCardIndex: 0,
+			sumFrom: 0,
+			sumTo: 0,
 		};
 	}
-
-	/**
-	 * Изменения активной карты
-	 * @param {Number} activeCardIndex индекс активной карты
-	 */
-	onCardChange(activeCardIndex) {
-		this.setState({activeCardIndex});
-	}
-
-	/**
-	 * Обработка изменения значения в input
-	 * @param {Event} event событие изменения значения input
-	 */
-	onChangeInputValue(event) {
-		if (!event) {
-			return;
-		}
-
-		const {name, value} = event.target;
-
-		this.setState({
-			[name]: value
-		});
-	}
+  
+  componentWillUpdate(nextProps) {
+    const isNewCard = nextProps.activeCard.id !== this.props.activeCard.id;
+    const areNewCurrencies = nextProps.currencyState.timestamp !== this.props.currencyState.timestamp;
+    if (isNewCard || areNewCurrencies) {
+      const sumTo = convertCurrency({
+        currencyState: nextProps.currencyState,
+        sum: this.state.sumFrom,
+        convertFrom: nextProps.inactiveCardsList[this.state.prepaidCardIndex].currency,
+        convertTo: nextProps.activeCard.currency,
+      });
+      
+      this.setState({ sumTo });
+    }
+  }
+  
+  /**
+   * Обработчик переключения карты
+   *
+   * @param {Number} prepaidCardIndex индекс выбранной карты
+   */
+  onCardChange(prepaidCardIndex) {
+    const sumTo = convertCurrency({
+      currencyState: this.props.currencyState,
+      sum: this.state.sumFrom,
+      convertFrom: this.props.inactiveCardsList[prepaidCardIndex].currency,
+      convertTo: this.props.activeCard.currency,
+    });
+    
+    this.setState({
+      prepaidCardIndex,
+      sumTo,
+    });
+  }
+  
+  /**
+   * Обработка изменения значения в input
+   * @param {Event} event событие изменения значения input
+   */
+  onChangeInputValue(event) {
+    if (!event) return;
+    
+    const {name, value} = event.target;
+    const { currencyState, activeCard, inactiveCardsList } = this.props;
+    const { prepaidCardIndex } = this.state;
+    const prepaidCard = inactiveCardsList[prepaidCardIndex];
+    
+    let otherName, otherValue, convertFrom, convertTo;
+    
+    if (name === 'sumFrom') {
+      otherName = 'sumTo';
+      convertFrom = prepaidCard.currency;
+      convertTo = activeCard.currency;
+    } else {
+      otherName = 'sumFrom';
+      convertFrom = activeCard.currency;
+      convertTo = prepaidCard.currency;
+    }
+    
+    otherValue = convertCurrency({ currencyState, sum: value, convertFrom, convertTo });
+    
+    if (isNaN(otherValue)) otherValue = '?';
+    
+    this.setState({
+      [name]: value,
+      [otherName]: otherValue,
+    });
+  }
 
 	/**
 	 * Отправка формы
 	 * @param {Event} event событие отправки формы
 	 */
 	onSubmitForm(event) {
-		if (event) {
-			event.preventDefault();
-		}
-
-		const {sum} = this.state;
-		const {activeCard} = this.props;
-
-		const isNumber = !isNaN(parseFloat(sum)) && isFinite(sum);
-		if (!isNumber || sum <= 0) return;
-
-		const fromCard = this.props.inactiveCardsList[this.state.activeCardIndex];
+		if (event) event.preventDefault();
+    
+    const { activeCard, inactiveCardsList, onPaymentSubmit } = this.props;
+    const { sumFrom, sumTo, prepaidCardIndex } = this.state;
+    
+    const isNumberFrom = !isNaN(parseFloat(sumFrom)) && isFinite(sumFrom);
+    const isNumberTo = !isNaN(parseFloat(sumTo)) && isFinite(sumTo);
+    if (!isNumberFrom || sumFrom <= 0 || !isNumberTo) return;
+    
+    const prepaidCard = inactiveCardsList[prepaidCardIndex];
 		
-		this.props.onPaymentSubmit({
-			sum,
-			to: activeCard.cardNumber,
-			from: fromCard.number
-		}, fromCard.id, activeCard.id);
+		onPaymentSubmit(
+			{
+				sum: sumFrom,
+				to: activeCard.cardNumber,
+				from: prepaidCard.number,
+        currency: prepaidCard.currency,
+			},
+			prepaidCard.id,
+			activeCard.id,
+		);
+    
+    this.setState({sumFrom: 0, sumTo: 0});
 	}
 
 	/**
@@ -144,12 +204,12 @@ class PrepaidContract extends Component {
 	 * @returns {XML}
 	 */
 	render() {
-		const {inactiveCardsList} = this.props;
+		const { inactiveCardsList, activeCard } = this.props;
 
 		if (inactiveCardsList.length === 0) return (<div></div>);
 
-		const {activeCardIndex} = this.state;
-		const selectedCard = inactiveCardsList[activeCardIndex];
+		const { sumFrom, sumTo, prepaidCardIndex } = this.state;
+		const prepaidCard = inactiveCardsList[prepaidCardIndex];
 
 		return (
 				<PrepaidLayout><form onSubmit={(event) => this.onSubmitForm(event)}>
@@ -162,20 +222,23 @@ class PrepaidContract extends Component {
 									bgColor={card.theme.bgColor}
 									key={card.id}
 									onClick={() => this.onCardChange(index)}
-									selected={activeCardIndex === index}>
+									selected={prepaidCardIndex === index}>
 									<PrepaidItemIcon
 										bankSmLogoUrl={card.theme.bankSmLogoUrl}
-										selected={activeCardIndex === index} />
+										selected={prepaidCardIndex === index} />
 									<PrepaidItemTitle
 										textColor={card.theme.textColor}
-										selected={activeCardIndex === index}>
+										selected={prepaidCardIndex === index}>
 										C банковской карты
 										<PrepaidItemDescription
 											textColor={card.theme.textColor}
-											selected={activeCardIndex === index}>
+											selected={prepaidCardIndex === index}>
 											{card.number}
 										</PrepaidItemDescription>
 									</PrepaidItemTitle>
+									<PrepaidItemCurrency>
+										{card.currencySign}
+									</PrepaidItemCurrency>
 								</PrepaidItem>
 							))
 						}
@@ -183,15 +246,26 @@ class PrepaidContract extends Component {
 
 					<InputField>
 						<SumInput
-							name='sum'
-							value={this.state.sum}
+							name='sumFrom'
+							value={sumFrom}
 							onChange={(event) => this.onChangeInputValue(event)} />
-						<Currency>₽</Currency>
+						<Currency>{prepaidCard.currencySign}</Currency>
 					</InputField>
+          {
+            (activeCard.currencySign !== prepaidCard.currencySign) &&
+						<InputField>
+							<SumInput
+								name='sumTo'
+								value={sumTo}
+								onChange={event => this.onChangeInputValue(event)}
+							/>
+							<Currency>{activeCard.currencySign}</Currency>
+						</InputField>
+          }
 					<Button
 						type='submit'
-						bgColor={selectedCard.theme.bgColor}
-						textColor={selectedCard.theme.textColor}>
+						bgColor={prepaidCard.theme.bgColor}
+						textColor={prepaidCard.theme.textColor}>
 						Пополнить
 					</Button></form>
 				</PrepaidLayout>
@@ -204,6 +278,7 @@ PrepaidContract.propTypes = {
 		id: PropTypes.string,
 		theme: PropTypes.object
 	}),
+	currencyState: PropTypes.object,
 	inactiveCardsList: PropTypes.arrayOf(PropTypes.object),
 	onPaymentSubmit: PropTypes.func.isRequired
 };

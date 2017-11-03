@@ -5,6 +5,8 @@ const server = require('../../index');
 const userJson = require('../data_users');
 const Card = require('../../models/card');
 
+const currency = require('../../services/currency');
+
 const should = chai.should();
 chai.use(chaiHttp);
 
@@ -234,11 +236,14 @@ describe('Transactions routes test', () => {
         });
 
         it('should add new transaction with card2card operation', done => {
+            
+            currency.convert = ({ sum }) => sum * 0.5;
+            
             chai.request(server)
                 .post('/api/cards/59e9ce16131a183238cc784e/transfer')
                 .set('Authorization', 'JWT ' + token)
                 .send({
-                    to: '4011733472066880',
+                    to: '5101263005131454',
                     amount: 100
                 })
                 .end((err, res) => {
@@ -258,11 +263,11 @@ describe('Transactions routes test', () => {
                             res.body[3].should.have.property('id');
                             res.body[3].should.have.property('cardId').eql('59e9ce16131a183238cc784e');
                             res.body[3].should.have.property('type').eql('card2Card');
-                            res.body[3].should.have.property('data').eql('4011733472066880');
+                            res.body[3].should.have.property('data').eql('5101263005131454');
                             res.body[3].should.have.property('sum').eql(-100);
 
                             chai.request(server)
-                                .get('/api/cards/59e9ce16131a183238cc784f/transactions')
+                                .get('/api/cards/59e9ce16131a183238cc7850/transactions')
                                 .set('Authorization', 'JWT ' + token)
                                 .end((err, res) => {
                                     res.should.have.status(200);
@@ -270,10 +275,10 @@ describe('Transactions routes test', () => {
                                     res.body.should.be.a('array');
                                     res.body.length.should.be.eql(3);
                                     res.body[2].should.have.property('id');
-                                    res.body[2].should.have.property('cardId').eql('59e9ce16131a183238cc784f');
+                                    res.body[2].should.have.property('cardId').eql('59e9ce16131a183238cc7850');
                                     res.body[2].should.have.property('type').eql('prepaidCard');
                                     res.body[2].should.have.property('data').eql('5469259469067206');
-                                    res.body[2].should.have.property('sum').eql(100);
+                                    res.body[2].should.have.property('sum').eql(50);
 
                                     chai.request(server)
                                         .get('/api/cards/59e9ce16131a183238cc784e')
@@ -285,13 +290,13 @@ describe('Transactions routes test', () => {
                                             res.body.should.have.property('balance').eql(14900);
 
                                             chai.request(server)
-                                                .get('/api/cards/59e9ce16131a183238cc784f')
+                                                .get('/api/cards/59e9ce16131a183238cc7850')
                                                 .set('Authorization', 'JWT ' + token)
                                                 .end((err, res) => {
                                                     res.should.have.status(200);
                                                     res.type.should.eql('application/json');
                                                     res.body.should.be.a('object');
-                                                    res.body.should.have.property('balance').eql(1800);
+                                                    res.body.should.have.property('balance').eql(7050);
 
                                                     done();
                                                 });

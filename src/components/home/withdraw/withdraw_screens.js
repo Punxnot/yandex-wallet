@@ -73,14 +73,14 @@ const RepeatPayment = styled.button`
 	text-transform: uppercase;
 `;
 
-export const WithdrawSuccess = ({transaction, repeatPayment}) => {
+export const WithdrawSuccess = ({activeCard, transaction, repeatPayment}) => {
 	const {sum, to} = transaction;
 
 	return (
 		<WithdrawLayout>
 			<CheckIcom />
 			<SectionGroup>
-				<Header>Перевод на карту пополнена</Header>
+				<Header>Перевод на карту выполнен</Header>
 				<Section>
 					<SectionLabel>Название платежа:</SectionLabel>
 					<SectionValue>Перевод на привязанную карту</SectionValue>
@@ -91,7 +91,7 @@ export const WithdrawSuccess = ({transaction, repeatPayment}) => {
 				</Section>
 				<Section>
 					<SectionLabel>Сумма:</SectionLabel>
-					<SectionValue>{sum} ₽</SectionValue>
+					<SectionValue>{sum} {activeCard.currencySign}</SectionValue>
 				</Section>
 			</SectionGroup>
 			<RepeatPayment onClick={repeatPayment}>Отправить еще один перевод</RepeatPayment>
@@ -100,6 +100,7 @@ export const WithdrawSuccess = ({transaction, repeatPayment}) => {
 };
 
 WithdrawSuccess.propTypes = {
+  activeCard: PropTypes.object,
 	transaction: PropTypes.shape({
 		sum: PropTypes.string,
 		number: PropTypes.string
@@ -107,7 +108,7 @@ WithdrawSuccess.propTypes = {
 	repeatPayment: PropTypes.func.isRequired
 };
 
-export const WithdrawError = ({transaction, repeatPayment, error}) => {
+export const WithdrawError = ({activeCard, transaction, repeatPayment, error}) => {
 	const {sum, to} = transaction;
 
 	return (
@@ -125,7 +126,7 @@ export const WithdrawError = ({transaction, repeatPayment, error}) => {
 				</Section>
 				<Section>
 					<SectionLabel>Сумма:</SectionLabel>
-					<SectionValue>{sum} ₽</SectionValue>
+					<SectionValue>{sum} {activeCard.currencySign}</SectionValue>
 				</Section>
 				<Section>
 					<SectionLabel>Ошибка:</SectionLabel>
@@ -138,6 +139,7 @@ export const WithdrawError = ({transaction, repeatPayment, error}) => {
 };
 
 WithdrawError.propTypes = {
+  activeCard: PropTypes.object,
 	transaction: PropTypes.shape({
 		sum: PropTypes.string,
 		number: PropTypes.string

@@ -1,0 +1,35 @@
+version: '2'
+services:
+  nginx:
+    image: jwilder/nginx-proxy
+    container_name: yandex-nginx-proxy-dev
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - /usr/share/nginx/html
+  
+  db:
+    image: mongo:3.4
+    container_name: yandex-mongodb-dev
+    restart: always
+    volumes:
+      - ~/yandex_wallet/db/backup:/backup:rw
+
+  web:
+    image: yandex-wallet
+    container_name: yandex-web-dev
+    restart: always
+    depends_on:
+      - db
+      - nginx
+    links:
+      - db
+    volumes:
+      - ~/yandex_wallet/logs:/app/server/logs
+    environment:
+      - NODE_JWT_SECRET=sdksjkdfajkKJSJKjksajdffgffjkJKSjkasjkqwbkDJKBLJKSdjkasdjksgggadjk
+      - NODE_MONGO=mongodb://db/yandex_wallet
+      - VIRTUAL_HOST=dev.wallet.kroniak.net

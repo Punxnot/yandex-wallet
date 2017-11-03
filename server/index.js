@@ -12,6 +12,7 @@ const passport = require('koa-passport');
 const logger = require('./libs/logger')('app');
 const cardsRoute = require('./routes/cards');
 const authRoute = require('./routes/auth');
+const currencyRoute = require('./routes/currency');
 
 const CardsContext = require('./data/cards_context');
 const TransactionsContext = require('./data/transactions_context');
@@ -29,6 +30,9 @@ app.use(koaBody);
 app.use(passport.initialize());
 
 require('./services/passport');
+
+// currency service
+require('./services/currency');
 
 // Логгер работает только для нетестовых окружений
 if (process.env.NODE_ENV !== 'test')
@@ -84,6 +88,7 @@ const requiredAuth = async (ctx, next) => await passport.authenticate('jwt', asy
 
 router.use('/api/auth', authRoute.routes());
 router.use('/api/cards', requiredAuth, cardsRoute.routes());
+router.use('/api/currency', requiredAuth, currencyRoute.routes());
 
 app.use(router.routes());
 app.use(router.allowedMethods());

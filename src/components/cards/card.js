@@ -18,7 +18,7 @@ const CardLayout = styled.div`
 
 const CardLogo = styled.div`
 	height: 28px;
-	margin-bottom: 25px;
+	margin-bottom: ${({ isTight }) => isTight ? '20px' : '25px'};
 	background-image: url(${({url}) => url});
 	background-size: contain;
 	background-repeat: no-repeat;
@@ -33,7 +33,7 @@ const CardNumber = styled.div`
 `;
 
 const CardNumberInput = styled.input`
-	margin-bottom: 20px;
+	margin-bottom: ${({ isTight }) => isTight ? '10px' : '20px'};
 	color: ${({active, textColor}) => active ? textColor : 'rgba(255, 255, 255, 0.6)'};
 	font-size: 16px;
 	font-family: 'OCR A Std Regular';
@@ -51,11 +51,20 @@ const CardType = styled.div`
 
 	padding-right: 60px;
 	padding-top: 4px;
-	text-align: right;
 
 	color: ${({active, textColor}) => active ? textColor : 'rgba(255, 255, 255, 0.6)'};
 	font-size: 16px;
 	font-family: 'OCR A Std Regular';
+`;
+
+const CardCurrency = styled.div`
+  display: inline-block;
+  width: 105px;
+  font-weight: bold;
+  font-size: 16px;
+  font-family: 'OCR A Std Regular';
+  text-align: left !important;
+  color: ${({ color }) => color ? color : 'inherit'};
 `;
 
 const NewCardLayout = styled(CardLayout)`
@@ -70,6 +79,12 @@ const NewCardLayout = styled(CardLayout)`
 const CardSelect = styled(Select)`
 	width: 100%;
 	margin-bottom: 15px;
+`;
+
+const CurrencySelect = styled(Select)`
+  width: 60px;
+  float: left;
+  margin-right: 30px;
 `;
 
 class Card extends Component {
@@ -94,27 +109,36 @@ class Card extends Component {
 							<Select.Option key={index} value={`${index}`}>{card.number}</Select.Option>
 						))}
 					</CardSelect>
-					<CardType url={brandLogoUrl} active={true} />
+					<CardType url={brandLogoUrl} active={true} >
+            <CardCurrency color={'#fff'}>{selectedCard.currencySign}</CardCurrency>
+          </CardType>
 				</CardLayout>
 			);
 		}
 
 		if (type === 'form'){
-			const {cardNumber, exp, theme} = data;
+			const {cardNumber, exp, currencySign, theme} = data;
 			const {bgColor, textColor, bankLogoUrl, brandLogoUrl} = theme;
-			const {onCardNumberChange} = this.props;
+			const {onCardNumberChange, onCardCurrencyChange} = this.props;
 
 			return (
 				<CardLayout active={true} bgColor={bgColor} isCardsEditable={false} isSingle={true} cursor={'auto'}>
-					<CardLogo url={bankLogoUrl} active={true} />
-					<CardNumberInput textColor={textColor} active={true} value={cardNumber} onChange={onCardNumberChange}/>
-					<CardType url={brandLogoUrl} active={true} textColor={textColor}>{exp}</CardType>
+					<CardLogo url={bankLogoUrl} active={true} isTight={true} />
+					<CardNumberInput textColor={textColor} active={true} value={cardNumber} onChange={onCardNumberChange} isTight={true} />
+          <CurrencySelect value={currencySign} onChange={sign => onCardCurrencyChange(sign)}>
+            {
+              ['₽', '$', '€'].map((sign, index) => (
+                <Select.Option key={index} value={sign}>{sign}</Select.Option>
+              ))
+            }
+          </CurrencySelect>
+          <CardType url={brandLogoUrl} active={true} textColor={textColor}>{exp}</CardType>
 				</CardLayout>
 			);
 		}
 
 		const {active, onClick, onChangeDeleteMode} = this.props;
-        const {number, theme, id, exp} = data;
+        const {number, theme, id, exp, currencySign} = data;
         const {bgColor, textColor, bankLogoUrl, brandLogoUrl} = theme;
         const themedBrandLogoUrl = active ? brandLogoUrl : brandLogoUrl.replace(/-colored.svg$/, '-white.svg');
 
@@ -125,7 +149,10 @@ class Card extends Component {
 				<CardNumber textColor={textColor} active={active}>
 					{number}
 				</CardNumber>
-				<CardType url={themedBrandLogoUrl} active={active} textColor={textColor}>{exp}</CardType>
+				<CardType url={themedBrandLogoUrl} active={active} textColor={textColor}>
+          <CardCurrency>{currencySign}</CardCurrency>
+          <span>{exp}</span>
+        </CardType>
 			</CardLayout>
 		);
     }

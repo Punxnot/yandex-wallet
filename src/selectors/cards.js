@@ -3,6 +3,34 @@ import CardInfo from 'card-info';
 import { createSelector } from 'reselect';
 
 /**
+ * Returns currency sign
+ * @param {String} currency
+ * @returns {String}
+ */
+const getSignByCurrency = (currency) => {
+    switch (currency) {
+        case 'RUB': return '₽';
+        case 'USD': return '$';
+        case 'EUR': return '€';
+        default: return '?';
+    }
+};
+
+/**
+ * Returns currency
+ * @param {String} sign
+ * @returns {String}
+ */
+export const getCurrencyBySign = (sign) => {
+    switch (sign) {
+        case '₽': return 'RUB';
+        case '$': return '$USD';
+        case '€': return 'EUR';
+        default: return '?';
+    }
+};
+
+/**
 	 * Подготавливает данные карты
 	 *
 	 * @param {Object} card данные карты
@@ -17,6 +45,8 @@ const prepareCardData = card => {
     return {
         id: card.id,
         balance: card.balance,
+        currency: card.currency,
+        currencySign: getSignByCurrency(card.currency),
         number: numberNice,
         cardNumber: card.cardNumber,
         exp: card.exp,

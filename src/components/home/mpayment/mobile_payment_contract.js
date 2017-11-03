@@ -7,6 +7,8 @@ import Title from '../../misc/title';
 import Button from '../../misc/button';
 import Input from '../../misc/input';
 
+import { convertCurrency } from '../../../selectors/currency';
+
 const MobilePaymentLayout = styled(Island)`
 	width: 440px;
 	background: #108051;
@@ -79,12 +81,31 @@ class MobilePaymentContract extends Component {
 	 */
 	constructor(props) {
 		super(props);
+		
+		const { activeCard, currencyState } = props;
+		
+		this.defaultRoubleComission = 3;
 
 		this.state = {
 			phoneNumber: '+79218908064',
-			sum: 100,
-			commission: 3
+			sum: 10,
+			commission: convertCurrency({ currencyState, sum: this.defaultRoubleComission, convertFrom: 'RUB', convertTo: activeCard.currency }),
 		};
+	}
+	
+	componentWillUpdate(nextProps) {
+		const isNewCurrencyCard = nextProps.activeCard.currency !== this.props.activeCard.currency;
+		const areNewCurrencies = nextProps.currencyState.timestamp !== this.props.currencyState.timestamp;
+		if (isNewCurrencyCard || areNewCurrencies) {
+			this.setState({
+        commission: convertCurrency({
+					currencyState: nextProps.currencyState,
+					sum: this.defaultRoubleComission,
+					convertFrom: 'RUB',
+					convertTo: nextProps.activeCard.currency,
+        }),
+			});
+		}
 	}
 
 	/**
@@ -98,6 +119,8 @@ class MobilePaymentContract extends Component {
 		if (!isNumber || sum <= 0) {
 			return 0;
 		}
+		
+		if (isNaN(commission)) return '?';
 
 		return Number(sum) + Number(commission);
 	}
@@ -114,7 +137,8 @@ class MobilePaymentContract extends Component {
 		const {sum, phoneNumber, commission} = this.state;
 
 		const isNumber = !isNaN(parseFloat(sum)) && isFinite(sum);
-		if (!isNumber || sum === 0) {
+		const isCommission = !isNaN(parseFloat(commission)) && isFinite(commission);
+		if (!isNumber || sum === 0 || !isCommission) {
 			return;
 		}
 
@@ -122,7 +146,7 @@ class MobilePaymentContract extends Component {
 			sum: this.getSumWithCommission(),
 			phoneNumber,
 			commission
-		}, this.props.activeCardId);
+		}, this.props.activeCard.id);
 	}
 
 	/**
@@ -148,6 +172,7 @@ class MobilePaymentContract extends Component {
 	 */
 	render() {
 		const {commission} = this.state;
+		const { currencySign } = this.props.activeCard;
 
 		return (
 			<MobilePaymentLayout>
@@ -160,14 +185,14 @@ class MobilePaymentContract extends Component {
 				<InputField>
 					<Label>Сумма</Label>
 					<InputSum name='sum' value={ this.state.sum } onChange={ (event) => this.handleInputChange(event) } />
-					<Currency>₽</Currency>
+					<Currency>{ currencySign }</Currency>
 				</InputField>
 				<InputField>
 					<Label>Спишется</Label>
 					<InputCommision value={ this.getSumWithCommission() } readOnly='true' />
-					<Currency>₽</Currency>
+					<Currency>{ currencySign }</Currency>
 				</InputField>
-				<Commission>Размер коммиссии составляет { commission } ₽</Commission>
+				<Commission>Размер коммиссии составляет { commission } { currencySign }</Commission>
 				<Underline />
 				<PaymentButton bgColor='#fff' textColor='#108051'>Заплатить</PaymentButton>
 				</form>
@@ -177,6 +202,8 @@ class MobilePaymentContract extends Component {
 }
 
 MobilePaymentContract.propTypes = {
+	activeCard: PropTypes.object,
+	currencyState: PropTypes.object,
 	onPaymentSubmit: PropTypes.func.isRequired
 };
 

@@ -5,22 +5,45 @@ import { connect } from 'react-redux';
 import WithdrawContract from './withdraw_contract';
 import { WithdrawSuccess, WithdrawError } from './withdraw_screens';
 
-import { getFilteredCards } from '../../../selectors/cards';
+import { getActiveCard, getFilteredCards } from '../../../selectors/cards';
 import { payWithdraw, repeateWithdrawTransfer } from '../../../actions/payments';
 
 const Withdraw = props => {
-    const {paymentState, onRepeatPaymentClick, onPaymentSubmit, activeCardId, inactiveCardsList} = props;
+    const {paymentState, onRepeatPaymentClick, onPaymentSubmit, activeCard, currencyState, inactiveCardsList} = props;
 
     if (paymentState.stage === 'success')
-        return (<WithdrawSuccess transaction={ paymentState.transaction } repeatPayment={ () => onRepeatPaymentClick() } />);
+        return (
+          <WithdrawSuccess
+            activeCard={ activeCard }
+            transaction={ paymentState.transaction }
+            repeatPayment={ () => onRepeatPaymentClick() }
+          />
+        );
+    
     else if (paymentState.stage === 'contract')
-        return (<WithdrawContract activeCardId={ activeCardId } inactiveCardsList={ inactiveCardsList } onPaymentSubmit={ (transaction, id, toId) => onPaymentSubmit(transaction, id, toId) } />);
-    else return (<WithdrawError transaction={ paymentState.transaction } error={ paymentState.error } repeatPayment={ () => onRepeatPaymentClick() } />);
+        return (
+          <WithdrawContract
+            activeCard={ activeCard }
+            currencyState={ currencyState }
+            inactiveCardsList={ inactiveCardsList }
+            onPaymentSubmit={ (transaction, id, toId) => onPaymentSubmit(transaction, id, toId) }
+          />
+        );
+    
+    else return (
+          <WithdrawError
+            activeCard={ activeCard }
+            transaction={ paymentState.transaction }
+            error={ paymentState.error }
+            repeatPayment={ () => onRepeatPaymentClick() }
+          />
+        );
 }
 
 Withdraw.propTypes = {
     paymentState: PropTypes.object,
-    activeCardId: PropTypes.string,
+    activeCard: PropTypes.object,
+    currencyState: PropTypes.object,
     inactiveCardsList: PropTypes.arrayOf(PropTypes.object),
     onPaymentSubmit: PropTypes.func.isRequired,
     onRepeatPaymentClick: PropTypes.func.isRequired
@@ -28,7 +51,8 @@ Withdraw.propTypes = {
 
 const mapStateToProps = state => ({
     paymentState: state.payments.withdrawPayment,
-    activeCardId: state.cards.activeCardId,
+    activeCard: getActiveCard(state),
+    currencyState: state.currency,
     inactiveCardsList: getFilteredCards(state)
 });
 

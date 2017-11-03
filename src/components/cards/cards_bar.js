@@ -104,11 +104,11 @@ class CardsBar extends Component {
     this.props.onDeleteClick(id);
   }
 
-  onAddClickWrapper = (cardNumber, exp, name) => {
+  onAddClickWrapper = (cardNumber, currency, exp, name) => {
     this.setState({
       isCardAdding: false
     });
-    this.props.onAddClick(cardNumber, exp, name);
+    this.props.onAddClick(cardNumber, currency, exp, name);
   }
 
   renderCards = () => {
@@ -143,7 +143,7 @@ class CardsBar extends Component {
       return (
         <Layout>
           <Logo />
-          <CardAdd onCancelClick={ () => this.onCancelMode() } addCard={ (cardNumber, exp, name) => this.onAddClickWrapper(cardNumber, exp, name) } />
+          <CardAdd onCancelClick={ () => this.onCancelMode() } addCard={ (cardNumber, currency, exp, name) => this.onAddClickWrapper(cardNumber, currency, exp, name) } />
           <Footer>Yamoney Node School</Footer>
         </Layout>);
 
@@ -181,7 +181,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onClick: id => dispatch(changeActiveCard(id)),
   onDeleteClick: id => dispatch(deleteCard(id)),
-  onAddClick: (cardNumber, exp, name) => dispatch(addCard(cardNumber, exp, name))
+  onAddClick: (cardNumber, currency, exp, name) => dispatch(addCard(cardNumber, currency, exp, name))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(CardsBar);

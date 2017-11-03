@@ -10,7 +10,7 @@ const ROOT_URL = '/api';
 * Добавляет новую карту пользователю
 * 
 */
-export const addCard = (cardNumber, exp, name) => {
+export const addCard = (cardNumber, currency, exp, name) => {
     return async dispatch => {
         try {
             dispatch({
@@ -19,6 +19,7 @@ export const addCard = (cardNumber, exp, name) => {
 
             const data = {
                 cardNumber,
+                currency,
                 exp,
                 name
             };

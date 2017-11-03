@@ -4,6 +4,7 @@ import styled from 'emotion/react';
 import Card from './card';
 import Button from '../misc/button';
 import CardInfo from 'card-info';
+import { getCurrencyBySign } from '../../selectors/cards';
 
 const CardAddLayout = styled.div`
 	flex: 1;
@@ -39,18 +40,20 @@ class CardAdd extends Component {
 
 		this.state = {
 			cardNumber: '5269673919202365',
-			exp: '10/20'
+			exp: '10/20',
+			currencySign: '₽',
 		};
 
 		this.onCardNumberChange = this.onCardNumberChange.bind(this);
+		this.onCardCurrencyChange = this.onCardCurrencyChange.bind(this);
 		this.onAddClick = this.onAddClick.bind(this);
 	}
 
 	onAddClick(e) {
-		const {cardNumber, exp} = this.state;
+		const {cardNumber, exp, currencySign} = this.state;
 
-		if (cardNumber && exp)
-			this.props.addCard(cardNumber, exp, 'FIRST LAST');
+		if (cardNumber && exp && currencySign)
+			this.props.addCard(cardNumber, getCurrencyBySign(currencySign), exp, 'FIRST LAST');
 	}
 
 	onCardNumberChange(e) {
@@ -58,8 +61,14 @@ class CardAdd extends Component {
 			cardNumber: e.target.value
 		});
 	}
+	
+	onCardCurrencyChange(sign) {
+		this.setState({
+			currencySign: sign
+		});
+	}
 
-	getDisplayValues(cardNumber, exp) {
+	getDisplayValues(cardNumber, exp, currencySign) {
 		const {numberNice, backgroundColor, textColor, bankLogoSvg, brandLogoSvg, bankAlias} = new CardInfo(cardNumber, {
 			banksLogosPath: '/assets/',
 			brandsLogosPath: '/assets/'
@@ -68,6 +77,7 @@ class CardAdd extends Component {
 		return {
 			cardNumber: numberNice,
 			exp,
+			currencySign,
 			theme: {
 				bgColor: backgroundColor,
 				textColor: textColor,
@@ -80,11 +90,17 @@ class CardAdd extends Component {
 
 	render() {
 		const {onCancelClick} = this.props;
+		const { cardNumber, exp, currencySign } = this.state;
 
 		return (
 			<CardAddLayout>
 				<Title>Привязать новую карту</Title>
-				<Card type='form' data={ this.getDisplayValues(this.state.cardNumber, this.state.exp) } onCardNumberChange={ this.onCardNumberChange } />
+				<Card
+					type='form'
+					data={ this.getDisplayValues(cardNumber, exp, currencySign) }
+					onCardNumberChange={ this.onCardNumberChange }
+					onCardCurrencyChange={ this.onCardCurrencyChange }
+				/>
 				<LinkCardText>Удалить карту можно в любой момент</LinkCardText>
 				<Footer>
 				<div onClick={ this.onAddClick }>

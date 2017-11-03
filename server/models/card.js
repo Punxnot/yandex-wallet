@@ -30,6 +30,14 @@ const cardSchema = new Schema({
             message: 'valid cardNumber required'
         }
     },
+    currency: {
+        type: String,
+        required: [true, 'currency is required'],
+        enum: {
+            values: ['RUB', 'USD', 'EUR'],
+            message: 'valid currency is required',
+        },
+    },
     balance: {
         type: Number,
         required: [true, 'balance is required'],

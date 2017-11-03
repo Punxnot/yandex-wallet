@@ -44,6 +44,7 @@ describe('Cards routes tests', () => {
                     res.body.length.should.be.eql(5);
                     res.body[0].should.have.property('id');
                     res.body[0].should.have.property('cardNumber');
+                    res.body[0].should.have.property('currency');
                     res.body[0].should.have.property('exp');
                     res.body[0].should.have.property('balance');
                     res.body[0].should.have.property('name');
@@ -61,6 +62,7 @@ describe('Cards routes tests', () => {
                     res.body.should.be.a('object');
                     res.body.should.have.property('id').eql('59e9ce16131a183238cc784e');
                     res.body.should.have.property('cardNumber').eql('5469259469067206');
+                    res.body.should.have.property('currency').eql('RUB');
                     res.body.should.have.property('exp').eql('04/18');
                     res.body.should.have.property('balance').eql(15000);
                     res.body.should.have.property('name').eql('ALYSSA LIVINGSTON');
@@ -124,6 +126,7 @@ describe('Cards routes tests', () => {
                 .set('Authorization', 'JWT ' + token)
                 .send({
                     cardNumber: '15133306216010173046',
+                    currency: 'RUB',
                     exp: '04/18',
                     name: 'ALYSSA LIVINGSTON',
                 })
@@ -140,6 +143,7 @@ describe('Cards routes tests', () => {
                 .set('Authorization', 'JWT ' + token)
                 .send({
                     cardNumber: '5483874041820682',
+                    currency: 'USD',
                     exp: '01/10',
                     name: 'ALYSSA LIVINGSTON',
                 })
@@ -156,6 +160,7 @@ describe('Cards routes tests', () => {
                 .set('Authorization', 'JWT ' + token)
                 .send({
                     cardNumber: '5469259469067206',
+                    currency: 'EUR',
                     exp: '04/30',
                     name: 'ALYSSA LIVINGSTON',
                 })
@@ -165,6 +170,23 @@ describe('Cards routes tests', () => {
                     done();
                 });
         });
+        
+        it('it should not POST new card with invalid currency', done => {
+             chai.request(server)
+                 .post('/api/cards')
+                 .set('Authorization', 'JWT ' + token)
+                 .send({
+                   cardNumber: '5483874041820682',
+                   currency: 'JPY',
+                   exp: '04/30',
+                   name: 'ALYSSA LIVINGSTON',
+                 })
+                 .end((err, res) => {
+                   res.should.have.status(400);
+                   res.body.should.have.property('message').eql('card validation failed: currency: valid currency is required');
+                   done();
+                 });
+        });
 
         it('it should POST new card with balance', done => {
             chai.request(server)
@@ -172,6 +194,7 @@ describe('Cards routes tests', () => {
                 .set('Authorization', 'JWT ' + token)
                 .send({
                     cardNumber: '5483874041820682',
+                    currency: 'RUB',
                     exp: '04/30',
                     name: 'ALYSSA LIVINGSTON',
                     balance: 10000
@@ -182,6 +205,7 @@ describe('Cards routes tests', () => {
                     res.body.should.be.a('object');
                     res.body.should.have.property('id');
                     res.body.should.have.property('cardNumber').eql('5483874041820682');
+                    res.body.should.have.property('currency').eql('RUB');
                     res.body.should.have.property('balance').eql(10000);
                     res.body.should.have.property('exp').eql('04/30');
                     res.body.should.have.property('name').eql('ALYSSA LIVINGSTON');
@@ -197,6 +221,7 @@ describe('Cards routes tests', () => {
                 .set('Authorization', 'JWT ' + token)
                 .send({
                     cardNumber: '5483874041820682',
+                    currency: 'EUR',
                     exp: '04/30',
                     name: 'ALYSSA LIVINGSTON',
                 })
@@ -206,6 +231,7 @@ describe('Cards routes tests', () => {
                     res.body.should.be.a('object');
                     res.body.should.have.property('id');
                     res.body.should.have.property('cardNumber').eql('5483874041820682');
+                    res.body.should.have.property('currency').eql('EUR');
                     res.body.should.have.property('balance').eql(0);
                     res.body.should.have.property('exp').eql('04/30');
                     res.body.should.have.property('name').eql('ALYSSA LIVINGSTON');

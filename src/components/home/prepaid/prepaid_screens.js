@@ -74,7 +74,7 @@ const RepeatPayment = styled.button`
 `;
 
 export const PrepaidSuccess = ({transaction, repeatPayment}) => {
-	const {sum, from} = transaction;
+	const {sum, currency, from} = transaction;
 
 	return (
 		<PrepaidLayout>
@@ -90,8 +90,8 @@ export const PrepaidSuccess = ({transaction, repeatPayment}) => {
 					<SectionValue>{from}</SectionValue>
 				</Section>
 				<Section>
-					<SectionLabel>Сумма:</SectionLabel>
-					<SectionValue>{sum} ₽</SectionValue>
+					<SectionLabel>Списано:</SectionLabel>
+					<SectionValue>{sum} {currency}</SectionValue>
 				</Section>
 			</SectionGroup>
 			<RepeatPayment onClick={repeatPayment}>Отправить еще один перевод</RepeatPayment>
@@ -108,7 +108,7 @@ PrepaidSuccess.propTypes = {
 };
 
 export const PrepaidError = ({transaction, repeatPayment, error}) => {
-	const {sum, from} = transaction;
+	const {sum, currency, from} = transaction;
 
 	return (
 		<PrepaidLayoutError>
@@ -125,7 +125,7 @@ export const PrepaidError = ({transaction, repeatPayment, error}) => {
 				</Section>
 				<Section>
 					<SectionLabel>Сумма:</SectionLabel>
-					<SectionValue>{sum} ₽</SectionValue>
+					<SectionValue>{sum} {currency}</SectionValue>
 				</Section>
 				<Section>
 					<SectionLabel>Ошибка:</SectionLabel>

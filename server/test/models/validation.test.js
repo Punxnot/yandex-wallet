@@ -10,7 +10,7 @@ describe('Card model validation tests', () => {
         card.validate(validationResult => {
             const {message} = validationResult;
 
-            assert(message === "card validation failed: name: name is required, exp: exp date is required, balance: balance is required, cardNumber: cardNumber is required, userId: userId is required");
+            assert(message === "card validation failed: name: name is required, exp: exp date is required, balance: balance is required, currency: currency is required, cardNumber: cardNumber is required, userId: userId is required");
             done();
         });
     });
@@ -25,9 +25,10 @@ describe('Card model validation tests', () => {
         });
 
         card.validate(validationResult => {
-            const {balance, cardNumber, exp, name, userId} = validationResult.errors;
+            const {balance, currency, cardNumber, exp, name, userId} = validationResult.errors;
 
             assert(balance.message === 'balance must be greater then 0 and must be a number');
+            assert(currency.message === 'currency is required');
             assert(cardNumber.message === 'valid cardNumber required');
             assert(exp.message === 'non expired card required');
             assert(name.message === 'name must contains two words');
@@ -40,6 +41,7 @@ describe('Card model validation tests', () => {
     it('it should get errors with messages about invalid fields 2', done => {
         const card = new Card({
             cardNumber: '5483874041820682',
+            currency: 'JPY',
             balance: '-1',
             exp: '04/ss17',
             name: 'A A',
@@ -47,9 +49,10 @@ describe('Card model validation tests', () => {
         });
 
         card.validate(validationResult => {
-            const {balance, exp, name} = validationResult.errors;
+            const {balance, currency, exp, name} = validationResult.errors;
 
             assert(balance.message === 'balance must be greater then 0 and must be a number');
+            assert(currency.message === 'valid currency is required');
             assert(exp.message === 'exp must be 10/17 pattern match');
             assert(name.message === 'name must contains two words');
 
@@ -60,6 +63,7 @@ describe('Card model validation tests', () => {
     it('it should get errors with messages about doublicated cardNumber', done => {
         const card = new Card({
             cardNumber: '5469259469067206',
+            currency: 'USD',
             balance: 10,
             exp: '12/18',
             name: 'AM AM',
@@ -76,6 +80,7 @@ describe('Card model validation tests', () => {
     it('it should get error about userId', done => {
         const card = new Card({
             cardNumber: '5483874041820682',
+            currency: 'RUB',
             balance: 10,
             exp: '10/20',
             name: 'AM AM',
@@ -92,6 +97,7 @@ describe('Card model validation tests', () => {
     it('it should pass the verification', done => {
         const card = new Card({
             cardNumber: '5483874041820682',
+            currency: 'EUR',
             balance: 10,
             exp: '10/20',
             name: 'AM AM',

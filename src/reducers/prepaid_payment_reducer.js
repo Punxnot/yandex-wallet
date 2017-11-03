@@ -27,6 +27,14 @@ const prepaidPaymentReducer = (state = prepaidPaymentReducerInitialState, {type,
                 error: payload.error
             }
             
+        case actions.ACTIVE_CARD_CHANGED:
+            return {
+              ...state,
+              stage: 'contract',
+              transaction: null,
+              error: null,
+            }
+            
         default:
             return state
     }

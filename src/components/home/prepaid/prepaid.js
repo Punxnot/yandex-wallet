@@ -12,13 +12,33 @@ import { payPrepaid, repeatePrepaidTransfer } from '../../../actions/payments';
  * Класс компонента Prepaid
  */
 const Prepaid = props => {
-	const {paymentState, onRepeatPaymentClick, onPaymentSubmit, activeCard, inactiveCardsList} = props;
+	const {paymentState, onRepeatPaymentClick, onPaymentSubmit, activeCard, currencyState, inactiveCardsList} = props;
 
 	if (paymentState.stage === 'success')
-		return (<PrepaidSuccess transaction={ paymentState.transaction } repeatPayment={ () => onRepeatPaymentClick() } />);
+		return (
+			<PrepaidSuccess
+				transaction={ paymentState.transaction }
+				repeatPayment={ () => onRepeatPaymentClick() }
+			/>
+		);
+	
 	else if (paymentState.stage === 'contract')
-		return (<PrepaidContract activeCard={ activeCard } inactiveCardsList={ inactiveCardsList } onPaymentSubmit={ (transaction, id, activeId) => onPaymentSubmit(transaction, id, activeId) } />);
-	else return (<PrepaidError transaction={ paymentState.transaction } error={ paymentState.error } repeatPayment={ () => onRepeatPaymentClick() } />);
+		return (
+			<PrepaidContract
+				activeCard={ activeCard }
+				currencyState={ currencyState }
+				inactiveCardsList={ inactiveCardsList }
+				onPaymentSubmit={ (transaction, id, activeId) => onPaymentSubmit(transaction, id, activeId) }
+			/>
+		);
+	
+	else return (
+			<PrepaidError
+				transaction={ paymentState.transaction }
+				error={ paymentState.error }
+				repeatPayment={ () => onRepeatPaymentClick() }
+			/>
+		);
 }
 
 Prepaid.propTypes = {
@@ -32,6 +52,7 @@ Prepaid.propTypes = {
 const mapStateToProps = state => ({
 	paymentState: state.payments.prepaidPayment,
 	activeCard: getActiveCard(state),
+  currencyState: state.currency,
 	inactiveCardsList: getFilteredCards(state)
 });
 

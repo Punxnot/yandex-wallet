@@ -78,15 +78,15 @@ const RepeatPayment = styled.button`
 	text-transform: uppercase;
 `;
 
-export const MobilePaymentSuccess = ({transaction, repeatPayment}) => {
+export const MobilePaymentSuccess = ({activeCard, transaction, repeatPayment}) => {
 	const {sum, phoneNumber, commission} = transaction;
 
 	return (
 		<MobilePaymentLayout>
 			<SuccessIcon />
 			<Header>МегаФон (Россия)</Header>
-			<Sum>{sum} ₽</Sum>
-			<CommissionTips>В том числе комиссия {commission} ₽</CommissionTips>
+			<Sum>{sum} {activeCard.currencySign}</Sum>
+			<CommissionTips>В том числе комиссия {commission} {activeCard.currencySign}</CommissionTips>
 			<Section>
 				<SectionLabel>Номер транзакции</SectionLabel>
 				<SectionValue>200580211311</SectionValue>
@@ -104,6 +104,7 @@ export const MobilePaymentSuccess = ({transaction, repeatPayment}) => {
 };
 
 MobilePaymentSuccess.propTypes = {
+  activeCard: PropTypes.object,
 	transaction: PropTypes.shape({
 		sum: PropTypes.number,
 		phoneNumber: PropTypes.string,
@@ -112,14 +113,14 @@ MobilePaymentSuccess.propTypes = {
 	repeatPayment: PropTypes.func.isRequired
 };
 
-export const MobilePaymentError = ({transaction, repeatPayment, error}) => {
+export const MobilePaymentError = ({activeCard, transaction, repeatPayment, error}) => {
 	const {sum, phoneNumber, commission} = transaction;
 
 	return (
 		<MobilePaymentErrorLayout>
 			<Header>МегаФон (Россия)</Header>
-			<Sum>{sum} ₽</Sum>
-			<CommissionTips>В том числе комиссия {commission} ₽</CommissionTips>
+			<Sum>{sum} {activeCard.currencySign}</Sum>
+			<CommissionTips>В том числе комиссия {commission} {activeCard.currencySign}</CommissionTips>
 			<Section>
 				<SectionLabel>Номер транзакции</SectionLabel>
 				<SectionValue>200580211312</SectionValue>
@@ -137,6 +138,7 @@ export const MobilePaymentError = ({transaction, repeatPayment, error}) => {
 };
 
 MobilePaymentError.propTypes = {
+  activeCard: PropTypes.object,
 	transaction: PropTypes.shape({
 		sum: PropTypes.number,
 		phoneNumber: PropTypes.string,

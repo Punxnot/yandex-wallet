@@ -65,7 +65,7 @@ const HistoryItemTime = styled.div`
 `;
 
 const HistoryItemSum = styled.div`
-	width: 50px;
+	width: 85px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 `;
@@ -112,7 +112,7 @@ const History = ({transactions, activeCard, isLoading}) => {
 						{ item.hhmm}
 					</HistoryItemTime>
 					<HistoryItemSum>
-						{ `${item.sum} ₽` }
+						{ `${Number(item.sum.toFixed(4))} ${activeCard.currencySign}` }
 					</HistoryItemSum>
 				</HistoryItem>
 		);

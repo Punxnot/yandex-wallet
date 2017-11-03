@@ -8,6 +8,8 @@ import Title from '../../misc/title';
 import Button from '../../misc/button';
 import Input from '../../misc/input';
 
+import { convertCurrency } from '../../../selectors/currency';
+
 const WithdrawTitle = styled(Title)`
 	text-align: center;
 `;
@@ -52,18 +54,44 @@ class WithdrawContract extends Component {
 		super(props);
 
 		this.state = {
-			activeCardIndex: 0,
-			sum: 0
+			withdrawCardIndex: 0,
+			sumFrom: 0,
+			sumTo: 0,
 		};
 	}
+  
+  componentWillUpdate(nextProps) {
+    const isNewCard = nextProps.activeCard.id !== this.props.activeCard.id;
+    const areNewCurrencies = nextProps.currencyState.timestamp !== this.props.currencyState.timestamp;
+    if (isNewCard || areNewCurrencies) {
+    	const sumTo = convertCurrency({
+				currencyState: nextProps.currencyState,
+				sum: this.state.sumFrom,
+				convertFrom: nextProps.activeCard.currency,
+				convertTo: nextProps.inactiveCardsList[this.state.withdrawCardIndex].currency,
+      });
+    	
+    	this.setState({ sumTo });
+    }
+  }
 
 	/**
 	 * Обработчик переключения карты
 	 *
-	 * @param {Number} activeCardId индекс выбранной карты
+	 * @param {Number} withdrawCardIndex индекс выбранной карты
 	 */
-	onCardChange(activeCardIndex) {
-		this.setState({activeCardIndex});
+	onCardChange(withdrawCardIndex) {
+    const sumTo = convertCurrency({
+      currencyState: this.props.currencyState,
+      sum: this.state.sumFrom,
+      convertFrom: this.props.activeCard.currency,
+      convertTo: this.props.inactiveCardsList[withdrawCardIndex].currency,
+    });
+    
+		this.setState({
+			withdrawCardIndex,
+			sumTo,
+		});
 	}
 
 	/**
@@ -74,9 +102,29 @@ class WithdrawContract extends Component {
 		if (!event) return;
 		
 		const {name, value} = event.target;
+		const { currencyState, activeCard, inactiveCardsList } = this.props;
+		const { withdrawCardIndex } = this.state;
+		const withdrawCard = inactiveCardsList[withdrawCardIndex];
+		
+		let otherName, otherValue, convertFrom, convertTo;
+		
+		if (name === 'sumFrom') {
+			otherName = 'sumTo';
+			convertFrom = activeCard.currency;
+			convertTo = withdrawCard.currency;
+		} else {
+			otherName = 'sumFrom';
+			convertFrom = withdrawCard.currency;
+			convertTo = activeCard.currency;
+		}
+		
+		otherValue = convertCurrency({ currencyState, sum: value, convertFrom, convertTo });
+		
+		if (isNaN(otherValue)) otherValue = '?';
 
 		this.setState({
-			[name]: value
+			[name]: value,
+			[otherName]: otherValue,
 		});
 	}
 
@@ -86,20 +134,26 @@ class WithdrawContract extends Component {
 	 */
 	onSubmitForm(event) {
 		if (event) event.preventDefault();
-
-		const {sum} = this.state;
-
-		const isNumber = !isNaN(parseFloat(sum)) && isFinite(sum);
-		if (!isNumber || sum <= 0) return;
-
-		const toCard = this.props.inactiveCardsList[this.state.activeCardIndex];
 		
-		this.props.onPaymentSubmit({
-			sum,
-			to: toCard.cardNumber
-		}, this.props.activeCardId, toCard.id);
+		const { activeCard, inactiveCardsList, onPaymentSubmit } = this.props;
+		const { sumFrom, sumTo, withdrawCardIndex } = this.state;
 
-		this.setState({sum: 0});
+		const isNumberFrom = !isNaN(parseFloat(sumFrom)) && isFinite(sumFrom);
+		const isNumberTo = !isNaN(parseFloat(sumTo)) && isFinite(sumTo);
+		if (!isNumberFrom || sumFrom <= 0 || !isNumberTo) return;
+
+		const withdrawCard = inactiveCardsList[withdrawCardIndex];
+		
+		onPaymentSubmit(
+			{
+				sum: sumFrom,
+				to: withdrawCard.cardNumber
+			},
+			activeCard.id,
+			withdrawCard.id,
+		);
+
+		this.setState({sumFrom: 0, sumTo: 0});
 	}
 
 	/**
@@ -107,9 +161,12 @@ class WithdrawContract extends Component {
 	 * @returns {JSX}
 	 */
 	render() {
-		const {inactiveCardsList} = this.props;
+		const { inactiveCardsList, activeCard } = this.props;
 
 		if (inactiveCardsList.length === 0) return (<div></div>);
+    
+    const { sumFrom, sumTo, withdrawCardIndex } = this.state;
+    const withdrawCard = inactiveCardsList[withdrawCardIndex];
 
 		return (
 			<WithdrawLayout>
@@ -118,15 +175,27 @@ class WithdrawContract extends Component {
 					<Card
 						type='select' 
 						data={inactiveCardsList}
-						activeCardIndex={this.state.activeCardIndex} 
+						activeCardIndex={withdrawCardIndex}
 						onCardChange={id => this.onCardChange(id)} />
 					<InputField>
 						<SumInput
-							name='sum'
-							value={this.state.sum}
-							onChange={event => this.onChangeInputValue(event)} />
-						<Currency>₽</Currency>
+							name='sumFrom'
+							value={sumFrom}
+							onChange={event => this.onChangeInputValue(event)}
+						/>
+						<Currency>{activeCard.currencySign}</Currency>
 					</InputField>
+					{
+						(activeCard.currencySign !== withdrawCard.currencySign) &&
+						<InputField>
+							<SumInput
+								name='sumTo'
+								value={sumTo}
+								onChange={event => this.onChangeInputValue(event)}
+							/>
+							<Currency>{withdrawCard.currencySign}</Currency>
+						</InputField>
+          }
 					<Button type='submit'>Перевести</Button>
 				</form>
 			</WithdrawLayout>
@@ -135,8 +204,10 @@ class WithdrawContract extends Component {
 }
 
 WithdrawContract.propTypes = {
-	activeCardId: PropTypes.string,
-	inactiveCardsList: PropTypes.arrayOf(PropTypes.object)
+  activeCard: PropTypes.object,
+	currencyState: PropTypes.object,
+	inactiveCardsList: PropTypes.arrayOf(PropTypes.object),
+  onPaymentSubmit: PropTypes.func.isRequired,
 }
 
 export default WithdrawContract;
