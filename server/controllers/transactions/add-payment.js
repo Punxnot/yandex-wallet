@@ -1,5 +1,6 @@
 const addTransaction = require('../add-transaction-method');
-const TelegramBot = require('../../services/telegram-bot');
+const bot = require('../../libs/bot');
+const ObjectId = require('mongoose').Types.ObjectId;
 
 module.exports = async ctx => {
 	const {id} = ctx.params;
@@ -26,21 +27,14 @@ module.exports = async ctx => {
 	}
 
 	ctx.status = 201;
+	
+	const notificationParams = {
+		type: transaction.type,
+		user: ctx.user,
+		amount,
+		phone,
+		card
+	};
 
-	if (ctx.isTelegramPayment) {
-		return 201;
-	} else if (!ctx.request.body.isTest) {
-
-		//BUG //TODO
-		const notificationParams = {
-			type: transaction.type,
-			user: ctx.user,
-			amount,
-			phone,
-			card
-		};
-
-		TelegramBot.sendNotification(notificationParams);
-		return 201;
-	}
+	bot.sendNotification(notificationParams);
 };
