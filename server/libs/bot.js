@@ -1,8 +1,6 @@
 const Telegraf = require('telegraf')
-// const Extra = require('telegraf/extra')
 const session = require('telegraf/session')
 const {TELEGRAM_TOKEN} = require('../config-env');
-// const { reply } = Telegraf
 
 const bot = new Telegraf(TELEGRAM_TOKEN)
 

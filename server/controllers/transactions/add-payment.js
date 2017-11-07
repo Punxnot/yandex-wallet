@@ -35,5 +35,17 @@ module.exports = async ctx => {
 		card
 	};
 
-	bot.sendNotification(notificationParams);
+	if (ctx.isTelegramPayment) {
+		return 201;
+	} else if (!ctx.request.body.isTest) {
+		const notificationParams = {
+			type: transaction.type,
+			user: ctx.user,
+			amount,
+			phone,
+			card
+		};
+	
+		bot.sendNotification(notificationParams);
+	}
 };
