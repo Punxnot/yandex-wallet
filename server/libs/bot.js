@@ -25,9 +25,6 @@ To start receiving notifications please type:
 /getupdates <Telegram Secret Key>`);
 });
 
-const catPhoto = 'http://lorempixel.com/400/200/cats/'
-bot.command('cat', ({replyWithPhoto}) => replyWithPhoto(catPhoto));
-
 /**
 * Отправляет Telegram-оповещение пользователю
 *

@@ -1,6 +1,5 @@
 const addTransaction = require('../add-transaction-method');
 const bot = require('../../libs/bot');
-const ObjectId = require('mongoose').Types.ObjectId;
 
 module.exports = async ctx => {
 	const {id} = ctx.params;
